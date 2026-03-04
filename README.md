@@ -2,7 +2,7 @@
 Project 2 for CS335 at the University of Kentucky
 
 
-# Project setup
+# Project setup Windows
 
 1. Install npm 
 
