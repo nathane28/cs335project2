@@ -141,11 +141,17 @@ export class GUI implements IGUI {
 
     if (mouse.buttons === 1) {
       // Left button is pressed: FPS rotation
-      if (deltaX !== 0){
-        this.camera.rotate(this.camera.up(), -deltaX * GUI.rotationSpeed);
-      }
-      if (deltaY !== 0){
-        this.camera.rotate(this.camera.right(), -deltaY * GUI.rotationSpeed);
+      // Compute a single rotation axis from the mouse drag direction
+      if (deltaX !== 0 || deltaY !== 0) {
+        // World-space direction of mouse movement (negate deltaY since screen Y is inverted)
+        const viewChange = this.camera.right().scale(deltaX).add(this.camera.up().scale(-deltaY));
+        // Look direction is -forward (forward points behind camera by convention)
+        const look = this.camera.forward().scale(-1);
+        // Rotation axis perpendicular to look and the view change direction
+        const axis = Vec3.cross(look, viewChange);
+        if (axis.length() > 0.0001) {
+          this.camera.rotate(axis, GUI.rotationSpeed);
+        }
       }
     } else if (mouse.buttons === 2) {
       // Right button is pressed: Zoom in/out
