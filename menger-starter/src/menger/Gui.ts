@@ -56,8 +56,7 @@ export class GUI implements IGUI {
     this.sponge = sponge;
     this.animation = animation;
 
-	this.reset();
-
+	  this.reset();
     this.registerEventListeners(canvas);
   }
 
@@ -67,6 +66,9 @@ export class GUI implements IGUI {
   public reset(): void {
     this.fps = false;
     this.dragging = false;
+    this.prevX = 0;
+    this.prevY = 0;
+
     /* Create camera setup */
     this.camera = new Camera(
       new Vec3([0, 0, -6]),
@@ -128,7 +130,35 @@ export class GUI implements IGUI {
   public drag(mouse: MouseEvent): void {
 	  
 	  // TODO: Your code here for left and right mouse drag
-	  
+    // Left click = FPS rotation
+    // Right click = Zoom in and out
+    if (mouse.buttons === 0) return; // No buttons are pressed, so do nothing
+
+    const deltaX = mouse.screenX - this.prevX;
+    const deltaY = mouse.screenY - this.prevY;
+    this.prevX = mouse.screenX;
+    this.prevY = mouse.screenY;
+
+    if (mouse.buttons === 1) {
+      // Left button is pressed: FPS rotation
+      // Compute a single rotation axis from the mouse drag direction
+      if (deltaX !== 0 || deltaY !== 0) {
+        // World-space direction of mouse movement (negate deltaY since screen Y is inverted)
+        const viewChange = this.camera.right().scale(deltaX).add(this.camera.up().scale(-deltaY));
+        // Look direction is -forward (forward points behind camera by convention)
+        const look = this.camera.forward().scale(-1);
+        // Rotation axis perpendicular to look and the view change direction
+        const axis = Vec3.cross(look, viewChange);
+        if (axis.length() > 0.0001) {
+          this.camera.rotate(axis, GUI.rotationSpeed);
+        }
+      }
+    } else if (mouse.buttons === 2) {
+      // Right button is pressed: Zoom in/out
+      if (deltaY !== 0) {
+        this.camera.offsetDist(deltaY > 0 ? GUI.zoomSpeed : -GUI.zoomSpeed);
+      }
+    }
   }
 
   /**
@@ -158,55 +188,60 @@ export class GUI implements IGUI {
 
     switch (key.code) {
       case "KeyW": {
-
+        this.camera.offset(this.camera.forward(), -GUI.zoomSpeed, true);
         break;
       }
       case "KeyA": {
-
+        this.camera.offset(this.camera.right(), -GUI.zoomSpeed, true);
         break;
       }
       case "KeyS": {
-
+        // extra credit: save current geometry to an OBJ File
+        if (key.ctrlKey){
+          this.sponge.saveOBJ();
+        } else {
+          this.camera.offset(this.camera.forward(), GUI.zoomSpeed, true);
+        }
         break;
       }
       case "KeyD": {
-
+        this.camera.offset(this.camera.right(), GUI.zoomSpeed, true);
         break;
       }
       case "KeyR": {
-
+        this.reset();
         break;
       }
       case "ArrowLeft": {
-
+        this.camera.roll(GUI.rollSpeed, false);
         break;
       }
       case "ArrowRight": {
-
+        this.camera.roll(GUI.rollSpeed, true);
         break;
       }
       case "ArrowUp": {
-
+        this.camera.offset(this.camera.up(), GUI.panSpeed, true);
         break;
       }
       case "ArrowDown": {
-
+        this.camera.offset(this.camera.up(), -GUI.panSpeed, true);
         break;
       }
       case "Digit1": {
-
+        this.sponge.setLevel(0);
         break;
       }
       case "Digit2": {
-
+        this.sponge.setLevel(1);
         break;
       }
       case "Digit3": {
-
+        this.sponge.setLevel(2);
         break;
       }
       case "Digit4": {
-
+        this.sponge.setLevel(3);
         break;
       }
       default: {
