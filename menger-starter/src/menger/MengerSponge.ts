@@ -37,7 +37,6 @@ export class MengerSponge implements IMengerSponge {
   public setClean(): void {
     this.dirty = false;
   }
-  
   // Add one cube's 6 face into geometry arrays
   private addCube(x: number, y: number, z: number, size: number): void {
     const s = size;
@@ -53,7 +52,7 @@ export class MengerSponge implements IMengerSponge {
       [x + s, y + s, z + s],
       [x,     y + s, z + s],
     ];
-
+    
     // 6 faces each has 4 vertices
     const faces = [
       { verts: [4, 5, 6, 7], normal: [ 0,  0,  1] }, // front  (+z)
@@ -75,6 +74,31 @@ export class MengerSponge implements IMengerSponge {
       this.indices.push(startIndex, startIndex + 1, startIndex + 2);
       this.indices.push(startIndex + 2, startIndex + 3, startIndex);
     }
+  }
+
+  public saveOBJ(): void {
+    let objContent = "# Menger Sponge Export\n";
+    
+    // 1. Export Vertices
+    // positions array has 4 floats per vertex (x, y, z, w)
+    for (let i = 0; i < this.positions.length; i += 4) {
+      objContent += `v ${this.positions[i]} ${this.positions[i+1]} ${this.positions[i+2]}\n`;
+    }
+
+    // 2. Export Faces
+    // indices array has 3 integers per triangle
+    for (let i = 0; i < this.indices.length; i += 3) {
+      objContent += `f ${this.indices[i]+1} ${this.indices[i+1]+1} ${this.indices[i+2]+1}\n`;
+    }
+
+    // 3. Trigger Browser Download
+    const element = document.createElement('a');
+    const file = new Blob([objContent], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = 'menger_sponge.obj';
+    document.body.appendChild(element); // Required for Firefox
+    element.click();
+    document.body.removeChild(element);
   }
 
   // Recursively subdivide the cube to create the Menger geometry

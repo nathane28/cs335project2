@@ -196,7 +196,12 @@ export class GUI implements IGUI {
         break;
       }
       case "KeyS": {
-        this.camera.offset(this.camera.forward(), GUI.zoomSpeed, true);
+        // extra credit: save current geometry to an OBJ File
+        if (key.ctrlKey){
+          this.sponge.saveOBJ();
+        } else {
+          this.camera.offset(this.camera.forward(), GUI.zoomSpeed, true);
+        }
         break;
       }
       case "KeyD": {
